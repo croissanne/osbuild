@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import subprocess
 import sys
 from unittest.mock import call, patch
@@ -45,7 +46,7 @@ def fake_input_fixture():
             "filepath": "/some/filepath",
             "config": {
                 "profile_id": "some-profile-id",
-                "datastream": "some-datastream",
+                "datastream": "/usr/share/xml/scap/ssg/content/ssg-fedora-ds.xml",
                 "tailored_profile_id": "some-new-profile",
             }
         },
@@ -174,13 +175,13 @@ JSON_TAILORING = """{
       "id": "some-profile-id",
       "base_profile_id": "some-profile-id",
       "rules": {
-        "some-rule": {
+        "selinux_state": {
           "evaluate": true,
           "severity": "high"
         }
       },
       "variables": {
-        "some-variable": {
+        "var_sudo_logfile": {
           "value": 600
         }
       }
@@ -198,6 +199,7 @@ JSON_TAILORING = """{
     ]
 )
 @pytest.mark.skipif(not testutil.has_executable("autotailor"), reason="no autotailor executable")
+@pytest.mark.skipif(not os.path.isfile("/usr/share/xml/scap/ssg/content/ssg-fedora-ds.xml"), reason="no fedora ssg")
 def test_oscap_autotailor_json_profile_override(fake_json_input, stage_module, expected_profile, tmp_path):
     options = fake_json_input["options"]
     options["config"]["tailored_profile_id"] = expected_profile
